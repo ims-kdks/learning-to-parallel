@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="Adaptive Token Reduction for Efficient Large  Multimodal Models">
+  <meta name="keywords" content="Adaptive Token Reduction for Efficient Large  Multimodal Models">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Learning to Parallel</title>
+
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.1/css/bulma.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="stylesheet" href="visualization/app.css">
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/954/954591.png">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css"
+    integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous">
+
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js"
+    integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6"
+    crossorigin="anonymous"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js"
+    integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous"
+    onload="renderMathInElement(document.body);"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/js/all.min.js"></script>
+  <script type="module" src="https://gradio.s3-us-west-2.amazonaws.com/4.8.0/gradio.js"></script>
+</head>
+
+<style>
+  .expandable-card .card-text-container {
+    max-height: 200px;
+    overflow-y: hidden;
+    position: relative;
+  }
+
+  .expandable-card.expanded .card-text-container {
+    max-height: none;
+  }
+
+  .expand-btn {
+    position: relative;
+    display: none;
+    background-color: rgba(255, 255, 255, 0.8);
+    /* margin-top: -20px; */
+    /* justify-content: center; */
+    color: #510c75;
+    border-color: transparent;
+  }
+
+  .expand-btn:hover {
+    background-color: rgba(200, 200, 200, 0.8);
+    text-decoration: none;
+    border-color: transparent;
+    color: #510c75;
+  }
+
+  .expand-btn:focus {
+    outline: none;
+    text-decoration: none;
+  }
+
+  .expandable-card:not(.expanded) .card-text-container:after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 90px;
+    background: linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 1));
+  }
+
+  .expandable-card:not(.expanded) .expand-btn {
+    margin-top: -40px;
+  }
+
+  .card-body {
+    padding-bottom: 5px;
+  }
+
+  .vertical-flex-layout {
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .figure-img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .adjustable-font-size {
+    font-size: calc(0.5rem + 2vw);
+  }
+
+  .chat-history {
+    flex-grow: 1;
+    overflow-y: auto;
+    /* overflow-x: hidden; */
+    padding: 5px;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 10px;
+  }
+
+  #gradio pre {
+    background-color: transparent;
+  }
+
+  .author-block a {
+    color: #008AD7;
+    font-weight: normal;
+  }
+
+  /* Adjust the vertical alignment and font size of the superscript */
+  .author-block a sup {
+    vertical-align: baseline;
+    position: relative;
+    top: -0.3em;
+    /* Adjusts the position slightly above the baseline */
+    right: -0.1em;
+    /* Adjusts the position slightly to the right */
+    font-size: smaller;
+    /* Makes the font size smaller if needed */
+  }
+</style>
+
+<body>
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+            <h1 class="title is-1 publication-title">Learning to Parallel<span class="is-size-2"><span
+                  class="is-size-1"></span></h1>
+            <h3 class="title is-2 publication-title">Accelerating Diffusion Large Language Models via Adaptive Parallel
+              Decoding</h3>
+            <div class="is-size-4 publication-authors">
+              <span class="author-block">
+                <a href="https://42shawn.github.io/">Yuzhang Shang<sup>1,2,*</sup></a>,
+              </span>
+              <span class="author-block">
+                <a href="https://pages.cs.wisc.edu/~mucai/">Mu Cai<sup>1,*</sup></a>,
+              </span>
+              <span class="author-block">Bingxin Xu<sup>2</sup>,
+              </span>
+              <span class="author-block">
+                <a href="https://pages.cs.wisc.edu/~yongjaelee/" style="color:#008AD7;font-weight:normal;">Yong Jae
+                  Lee<sup>1,&dagger;</sup></a>,
+              </span>
+              <span class="author-block">
+                <a href="https://tomyan555.github.io/">Yan Yan<sup>2,&dagger;</sup></a>
+              </span>
+            </div>
+
+            <div class="is-size-5 publication-authors">
+              <span class="author-block"><sup>*</sup>Equal Contribution</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+              <span class="author-block"><sup>&dagger;</sup>Equal Advising</span>
+            </div>
+
+
+
+            <div class="is-size-4 publication-authors">
+              <span class="author-block"><b style="color:#008AD7; font-weight:normal">1. </b> University of
+                Wisconsin-Madison</b></span>
+              <span classå="author-block"><b style="color:#008AD7; font-weight:normal">2. </b> Illinois Institute of
+                Technology </span>
+              <!-- <span class="author-block"><b style="color:#F2A900; font-weight:normal">&#x25B6 </b>Columbia
+                University</span> -->
+            </div>
+            <div class="column has-text-centered">
+              <div class="publication-links">
+                <span class="link-block">
+                  <a href="https://arxiv.org/abs/2403.15388" target="_blank"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                    </span>
+                    <span>Paper</span>
+                  </a>
+                </span>
+                <span class="link-block">
+                  <a href="https://github.com/ims-kdks/Learning-to-Parallel-Decoding" target="_blank"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon">
+                      <i class="fab fa-github"></i>
+                    </span>
+                    <span>Code</span>
+                  </a>
+                </span>
+              </div>
+            </div>
+            <img id="teaser" width="100%" src="images/introduction.png">
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- <section class="hero teaser">
+    <div class="container is-max-desktop">
+      <div class="hero-body">
+        <h4 class="subtitle has-text-left">
+          🔥<span style="color: #ff3860">[NEW!]</span> <b>PruMerge+</b>: After supplementing with spatial tokens, we can further enhance the performance by a large margin. Four times of token reduction rate is achieved with lossless performance gap!
+          <br><br>
+          🔥<span style="color: #ff3860"></span> We find that the visual tokens in current large multimodal models are spatially redundant, indicated by the sparse attention maps. 
+          <br><br>
+          🔥<span style="color: #ff3860"></span> We propose <b>LLaVA-PruMerge</b> to first <i>prune</i> and then <i>merge</i> visual tokens, which can compress the visual tokens by <b>18</b> times  (14 times on MME/TextVQA) on average while maintaining <b>comparable performance</b>. 
+        </h4>
+      </div>
+    </div>
+  </section> -->
+
+  <section class="section" style="background-color:#efeff081">
+    <div class="container is-max-desktop">
+      <!-- Abstract. -->
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-six-fifths">
+          <h2 class="title is-3">Abstract</h2>
+          <div class="content has-text-justified">
+            <p>
+              Autoregressive decoding in large language models (LLMs) requires \(\mathcal{O}(n)\) sequential steps for
+              \(n\) tokens, fundamentally limiting inference throughput.
+              Recent diffusion-based LLMs (dLLMs) enable parallel token generation through iterative denoising. However,
+              current parallel decoding strategies rely on fixed, input-agnostic heuristics (e.g., confidence
+              thresholds), which fail to adapt to input-specific characteristics, resulting in suboptimal speed-quality
+              trade-offs across diverse NLP tasks.
+              In this work, we explore a more flexible and dynamic approach to parallel decoding. We propose
+              \(\textbf{Learning to Parallel Decode (Learn2PD)}\), a framework that trains a lightweight and adaptive
+              filter model to predict, for each token position, whether the current prediction matches the final output.
+              This learned filter approximates an oracle parallel decoding strategy that unmasks tokens only when
+              correctly predicted. Importantly, the filter model is learned in a post-training manner, requiring only a
+              small amount of computation to optimize it (minute-level GPU time). Additionally, we introduce
+              \(\textbf{End-of-Text Prediction (EoTP)}\) to detect decoding completion at the end of sequence, avoiding
+              redundant decoding of padding tokens.
+              Experiments on the <a href="https://arxiv.org/pdf/2502.09992">LLaDA</a> benchmark demonstrate that our
+              method achieves up to \(\textbf{22.58×}\) speedup without any performance drop, and up to
+              \(\textbf{57.51×}\) when combined with KV-Cache.
+              <!-- <ol type="1">
+                <li><b>Multimodal Instruct Data</b>. <span style="font-size: 95%;">We present the first attempt to use <a href="https://openai.com/research/gpt-4">language-only GPT-4</a> to generate multimodal language-image instruction-following data. </span></li>
+                <li><b>LLaVA Model</b>. <span style="font-size: 95%;">We introduce <it><b>LLaVA</b> (<b>L</b>arge <b>L</b>anguage-<b>a</b>nd-<b>V</b>ision <b>A</b>ssistant)</it>, an end-to-end trained large multimodal model that connects a vision encoder and LLM for general-purpose visual and language understanding.</li>
+                <li><b>Performance</b>. <span style="font-size: 95%;">Our early experiments show that LLaVA demonstrates impressive multimodel chat abilities, sometimes exhibiting the behaviors of multimodal GPT-4 on unseen images/instructions, and yields a 85.1% relative score compared with GPT-4 on a synthetic multimodal instruction-following dataset.
+                  When fine-tuned on <a href="https://scienceqa.github.io/">Science QA</a>, the synergy of LLaVA and GPT-4  achieves a new state-of-the-art accuracy of 92.53%.</li>
+                <li><b>Open-source</b>. <span style="font-size: 95%;">We make GPT-4 generated visual instruction tuning data, our model and code base publicly available.</li>
+              </ol>   -->
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <h2 class="title is-3">Method</h2>
+      </div>
+      <h4>Learning to Parallel Decoding</h3>
+      <p>(a) Extremely Greedy Parallel. This strategy compares the predicted tokens with the reference answer and only remasks the tokens that do not match in these comparisons.</p>
+      <p>(b) Train a \(Filter f_\theta\) that simulate the Extremely Greedy Parallel strategy after each decoding step to select tokens and decide whether to remask them.</p>
+      <img id="teaser" width="100%" src="images/overview.png">
+    </div>
+    <!-- visualization -->
+    <div class="container is-max-desktop">
+      <div class="decoder-visualization">
+        <h3 class="title is-5">Question</h3>
+        <p id="question" class="is-size-5">Loading question...</p>
+  
+        <div class="controls">
+          <button id="play" class="button is-small is-link">Play</button>
+          <button id="pause" class="button is-small is-light" disabled>Pause</button>
+          <button id="prev" class="button is-small" disabled>◀ Prev</button>
+          <button id="next" class="button is-small" disabled>Next ▶</button>
+          <label>Speed: <input id="speed" type="range" min="50" max="2000" value="500" /></label>
+          <span id="speedLabel">500ms</span>
+        </div>
+  
+        <div class="step">Step <strong id="stepNum">0</strong> / <strong id="total">0</strong></div>
+        <div id="tables-container"></div>
+      </div>
+    </div>
+
+    <!-- Results. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-six-fifths">
+        <h2 class="title is-3"><img id="painting_icon" width="3%" src="images/alarm.png"> Motivation: Visual Tokens are
+          spatially redundant </h2>
+      </div>
+    </div>
+    <!--/ Results. -->
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <div class="content has-text-justified">
+
+
+            <p>
+              Current large multimodal models utlize all visual tokens to represent an image. In LLaVA-1.5, all spatial
+              (24&times;24=576) tokens are fed into the LLM, which leads to redundancy.
+            </p>
+
+            <p>
+              We propose a <b>plug-and-play</b> module to reduce the number of visual tokens, which can be conducted via
+              either training-free or finetuning manner.
+            </p>
+
+
+          </div>
+          <centering>
+            <div style="text-align: center;">
+              <img id="teaser" width="50%" src="images/architecture.png">
+            </div>
+          </centering>
+        </div>
+      </div>
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <div class="content has-text-justified">
+            <p>
+              Interestly, we oberserve that the activations between the class tokens and spatial tokens in CLIP are
+              <b>very sparse</b>, <b>which can be leveraged to prune the visual tokens</b>.
+            </p>
+          </div>
+          <centering>
+            <div style="text-align: center;">
+              <img id="teaser" width="100%" src="images/activation.png">
+            </div>
+          </centering>
+        </div>
+      </div>
+    </div>
+    <section class="section">
+      <!-- Results. -->
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-six-fifths">
+          <h2 class="title is-3"><img id="painting_icon" width="3%" src="images/lightbulb.png">The conceptual idea of
+            LLaVA-PruMerge</h2>
+        </div>
+      </div>
+      <!--/ Results. -->
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column is-full-width">
+            <div class="content has-text-justified">
+              <p>
+                Our approach has 3 steps:
+              <ul type="1">
+                <li> <span style="font-size: 95%;"> Sample important tokens according to the similarities between the
+                    class tokens and spatial visual tokens; </span></li>
+                <li> <span style="font-size: 95%;"> Cluster the visual tokens via k-nearest neighbor; </span></li>
+                <li> <span style="font-size: 95%;"> Adjust the sampled visual tokens via weighted averaging for each
+                    cluster. Here m denotes the visual token compression ratio. </span></li>
+              </ul>
+              </p>
+            </div>
+            <centering>
+              <div style="text-align: center;">
+                <img id="teaser" width="90%" src="images/detailed_steps.png">
+              </div>
+            </centering>
+          </div>
+        </div>
+
+        <div class="container is-max-desktop">
+          <div class="columns is-centered">
+            <div class="column is-full-width">
+              <div class="content has-text-justified">
+                <p>
+                  Our sampled tokens can better reflect the key information in the image.
+                </p>
+              </div>
+              <centering>
+                <div style="text-align: center;">
+                  <img id="teaser" width="100%" src="images/visualization.png">
+                </div>
+              </centering>
+            </div>
+          </div>
+
+          <div class="container is-max-desktop">
+            <div class="columns is-centered">
+              <div class="column is-full-width">
+                <div class="content has-text-justified">
+                  <p>
+                    We can further ehanace the performance by supplementing with spatial tokens.
+                  </p>
+                </div>
+                <centering>
+                  <div style="text-align: center;">
+                    <img id="teaser" width="60%" src="images/expalin_PruMerge+.png">
+                  </div>
+                </centering>
+              </div>
+            </div>
+    </section>
+
+    <section class="section">
+      <!-- Results. -->
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-six-fifths">
+          <h2 class="title is-3"><img id="painting_icon" width="3%"
+              src="https://cdn-icons-png.flaticon.com/512/5379/5379860.png">Computation Cost Analysis</h2>
+        </div>
+      </div>
+      <!-- </div> -->
+      <!--/ Results. -->
+      <div class="container is-max-desktop">
+
+        <div class="columns is-centered">
+          <div class="column is-full-width">
+            <div class="content has-text-justified">
+              <p>
+                <b>Our approach can significantly reduce the computation cost.</b> We evaluate on TESLA V100 GPU, and
+                time estimated by the roofline model represents the theoretical performance that the hardware can
+                achieve.
+              </p>
+            </div>
+            <centering>
+              <div style="text-align: center;">
+                <img id="teaser" width="90%" src="images/efficency.png">
+              </div>
+            </centering>
+          </div>
+        </div>
+    </section>
+
+    <section class="section">
+      <!-- Results. -->
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-six-fifths">
+          <h2 class="title is-3"><img id="painting_icon" width="3%"
+              src="https://cdn-icons-png.flaticon.com/512/3515/3515174.png"> Performance</h2>
+        </div>
+      </div>
+
+      <!-- </div> -->
+      <!--/ Results. -->
+      <div class="container is-max-desktop">
+
+
+        <!-- Grounedtext2img. -->
+        <div class="columns is-centered">
+          <div class="column is-full-width">
+            <h2 class="title is-4"><img id="painting_icon" width="4%"
+                src="https://cdn-icons-png.flaticon.com/512/1698/1698535.png"> <span style="font-size: 100%;">We achieve
+                comparable performance on LLaVA-1.5 benchmarks</span></h2>
+            <div class="columns is-centered">
+              <div class="column is-full-width">
+                <div class="content has-text-justified">
+                </div>
+              </div>
+            </div>
+            <div>
+              <a href="https://plotly.com/~lichunyuan24/5/?share_key=d78QObaCAYCIy8PJpe3gd1" target="_blank"
+                title="llava_gpt4_pie" style="display: block; text-align: center;"> <img id="painting_icon" width="90%"
+                  src="images/PruMerge+_results.png"> </a>
+
+            </div>
+
+            <!-- <p style="font-family:Times New Roman"><b>ViP-LLaVa achieves state-of-the-art performance on those benchmarks.</b>                -->
+          </div>
+        </div>
+
+
+
+
+
+        <!-- Grounedtext2img. -->
+        <div class="columns is-centered">
+          <div class="column is-full-width">
+            <h2 class="title is-4"> <img id="painting_icon" width="3%"
+                src="https://scienceqa.github.io/img/logo.png"><span style="font-size: 100%;"> &nbsp; Our sampled tokens
+                are better than naive visual token sampling</span> </h2>
+
+
+
+            <div>
+              <div class="columns is-centered">
+                <div class="column is-full-width">
+                  <div class="content has-text-justified">
+                    <p>
+                      We compare sequential sampling and saptical sampling.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <a href="https://plotly.com/~lichunyuan24/1/?share_key=v4opE3TJpxqQ08RYsDD4iv" target="_blank"
+                title="Plot 1" style="display: block; text-align: center;"><img id="painting_icon" width="70%"
+                  src="images/sampling-visualization.png"></a>
+              <script data-plotly="lichunyuan24:1" sharekey-plotly="v4opE3TJpxqQ08RYsDD4iv"
+                src="https://plotly.com/embed.js" async></script>
+
+              <!-- <p style="font-family:Times New Roman"><b>LLaVA alones achieve 90.92%. We use the text-only GPT-4 as the judge, to predict the final answer based on its own previous answers and the LLaVA answers. This "GPT-4 as judge" scheme yields a new SOTA 92.53%.</b> -->
+
+            </div>
+
+
+
+            <div>
+              <div class="columns is-centered">
+                <div class="column is-full-width">
+                  <div class="content has-text-justified">
+                    <br>
+                    <p>
+                      We receive better performance, especailly on tasks that requries detailed information, such as
+                      OCR.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <a href="https://plotly.com/~lichunyuan24/1/?share_key=v4opE3TJpxqQ08RYsDD4iv" target="_blank"
+                title="Plot 1" style="display: block; text-align: center;"><img id="painting_icon" width="80%"
+                  src="images/compare-sampling.png"></a>
+              <script data-plotly="lichunyuan24:1" sharekey-plotly="v4opE3TJpxqQ08RYsDD4iv"
+                src="https://plotly.com/embed.js" async></script>
+
+              <!-- <p style="font-family:Times New Roman"><b>LLaVA alones achieve 90.92%. We use the text-only GPT-4 as the judge, to predict the final answer based on its own previous answers and the LLaVA answers. This "GPT-4 as judge" scheme yields a new SOTA 92.53%.</b> -->
+
+            </div>
+
+
+
+
+
+
+          </div>
+
+
+
+
+
+
+
+
+
+
+    </section>
+
+  </section>
+
+  <section class="section" id="parallel-decoding-visualization">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-six-fifths">
+          <h2 class="title is-3">Parallel Decoding Animator</h2>
+        </div>
+      </div>
+
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <div class="content has-text-justified">
+            <p>
+              Step through the diffusion decoding process to see how Learn2PD selectively finalizes tokens over time.
+              Use the playback controls to animate the progression, adjust the speed, or compare individual steps.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="BibTeX">
+    <div class="container is-max-desktop content">
+      <h2 class="title">BibTeX</h2>
+      <pre><code>
+        @article{shang2024LLaVA-PruMerge,
+          title={LLaVA-PruMerge: Adaptive Token Reduction for Efficient Large Multimodal Models},
+          author={Shang, Yuzhang and Cai, Mu and Xu, Bingxin and Lee, Yong Jae and Yan, Yan},
+          journal={ICCV},
+          year={2025}
+        }
+      </code></pre>
+    </div>
+  </section>
+
+  <section class="section" id="Acknowledgement">
+    <div class="container is-max-desktop content">
+      <h2 class="title">Acknowledgement</h2>
+      <p>
+        This website is adapted from <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>, licensed under
+        a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+          Commons Attribution-ShareAlike 4.0 International License</a>. We thank the LLaMA team for giving us access to
+        their models, and open-source projects, including Alpaca and Vicuna.
+      </p>
+
+      <p>
+        <b>Usage and License Notices</b>: The data, code and checkpoint is intended and licensed for research use only.
+        They are also restricted to uses that follow the license agreement of CLIP, LLaMA, Vicuna and GPT-4. The dataset
+        is CC BY NC 4.0 (allowing only non-commercial use) and models trained using the dataset should not be used
+        outside of research purposes.
+      </p>
+
+      <p>
+        Related Links:
+        <a href='https://arxiv.org/abs/2103.00020'>[CLIP]</a>
+        <a href='https://llava-vl.github.io/'>[LLaVA]</a>
+        <a href='https://instruction-tuning-with-gpt-4.github.io/'>[Instruction Tuning with GPT-4]</a>
+      </p>
+    </div>
+  </section>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="visualization/app.js" data-base-path="visualization"></script>
+</body>
+
+</html>

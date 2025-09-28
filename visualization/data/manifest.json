@@ -1,0 +1,17 @@
+{
+  "question": "A robe takes 2 bolts of blue fiber and half that much white fiber. How many bolts in total does it take?",
+  "files": [
+    {
+      "file_name": "original.csv",
+      "title": "Original LLaDA"
+    },
+    {
+      "file_name": "learn_to_parallel.csv",
+      "title": "Learn to Parallel Decoding"
+    },
+    {
+      "file_name": "predict_eot.csv",
+      "title": "End-of-Text Prediction"
+    }
+  ]
+}

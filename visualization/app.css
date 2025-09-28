@@ -1,0 +1,137 @@
+.decoder-visualization {
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  padding: 18px;
+  background: #fff;
+  color: #222;
+}
+
+.decoder-visualization .controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.decoder-visualization .controls button,
+.decoder-visualization .controls input[type="range"] {
+  font: inherit;
+}
+
+.decoder-visualization label {
+  font-size: 14px;
+}
+
+.decoder-visualization .step {
+  color: #555;
+  margin-bottom: 6px;
+}
+
+.decoder-visualization #tables-container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.decoder-visualization .table-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.decoder-visualization .table-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.decoder-visualization .done-badge {
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #27ae60;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.decoder-visualization .table-empty {
+  color: #999;
+  font-style: italic;
+}
+
+.decoder-visualization .token-table {
+  border: none;
+  border-collapse: collapse;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.decoder-visualization .token-table td {
+  border: none;
+  padding: 0;
+  vertical-align: top;
+  white-space: pre;
+  text-align: center;
+  font-size: var(--token-font-size, 17px);
+  line-height: 1.2;
+  width: calc(100% / var(--cols, 16));
+  box-sizing: border-box;
+}
+
+.decoder-visualization .token {
+  background: transparent;
+}
+
+.decoder-visualization .token.empty {
+  color: #999;
+}
+
+.decoder-visualization .diff-added {
+  background: #dae7bb;
+  color: #3c845c;
+  border-radius: 4px;
+}
+
+.decoder-visualization .diff-removed {
+  background: #f8b5b0;
+  color: #5c0800;
+  border-radius: 4px;
+}
+
+.decoder-visualization .token-gray-out {
+  color: #c8c8c8;
+}
+
+.decoder-visualization .token-changed {
+  animation-name: tokenFadeIn;
+  animation-duration: var(--fade-in-duration, 0.5s);
+  animation-timing-function: ease;
+}
+
+.decoder-visualization .token-removed {
+  animation-name: tokenFadeOut;
+  animation-duration: var(--fade-int-duration, 0.5s);
+  animation-timing-function: ease;
+  animation-fill-mode: forwards;
+}
+
+@keyframes tokenFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes tokenFadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
