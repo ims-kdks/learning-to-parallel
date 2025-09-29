@@ -9,8 +9,8 @@ const MANIFEST_PATH = scriptDataset.manifestPath?.trim()
   || resolveAssetPath('data/manifest.json');
 
 const elements = {
-  play: document.getElementById('play'),
-  pause: document.getElementById('pause'),
+  playPause: document.getElementById('playPause'),
+  replay: document.getElementById('replay'),
   prev: document.getElementById('prev'),
   next: document.getElementById('next'),
   stepNum: document.getElementById('stepNum'),
@@ -46,12 +46,33 @@ function init() {
 }
 
 function attachEventHandlers() {
-  elements.play.addEventListener('click', startPlayback);
-  elements.pause.addEventListener('click', stopPlayback);
+  if (elements.playPause) {
+    elements.playPause.addEventListener('click', handlePlayPause);
+  }
+  if (elements.replay) {
+    elements.replay.addEventListener('click', handleReplay);
+  }
   elements.prev.addEventListener('click', stepPrevious);
   elements.next.addEventListener('click', stepNext);
   elements.speedInput.addEventListener('input', handleSpeedInput);
   window.addEventListener('resize', handleResize);
+}
+
+function handlePlayPause() {
+  if (isPlaying()) {
+    stopPlayback();
+  } else {
+    startPlayback();
+  }
+}
+
+function handleReplay() {
+  if (state.tables.length === 0) {
+    return;
+  }
+  stopPlayback();
+  setStep(0);
+  startPlayback();
 }
 
 function handleSpeedInput(event) {
@@ -453,11 +474,21 @@ function updateControls() {
   const lastIndex = computeLastStepIndex();
   const atStart = state.step === 0;
   const atEnd = state.step >= lastIndex;
+  const playing = isPlaying();
 
   elements.prev.disabled = !hasTables || atStart;
   elements.next.disabled = !hasTables || atEnd;
-  elements.play.disabled = !hasTables || isPlaying();
-  elements.pause.disabled = !hasTables || !isPlaying();
+
+  if (elements.playPause) {
+    elements.playPause.disabled = !hasTables;
+    elements.playPause.textContent = playing ? 'Pause' : 'Play';
+    elements.playPause.classList.toggle('is-link', !playing);
+    elements.playPause.classList.toggle('is-light', playing);
+  }
+
+  if (elements.replay) {
+    elements.replay.disabled = !hasTables;
+  }
 }
 
 function sanitizeBasePath(rawPath) {
