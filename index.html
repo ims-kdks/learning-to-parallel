@@ -152,7 +152,7 @@
                 <a href="https://www.danxurgb.net">Dan Xu<sup>3</sup></a>,
               </span>
               <span class="author-block">
-                <a href="https://42shawn.github.io/">Yuzhang Shang<sup>4</sup></a>
+                <a href="https://42shawn.github.io/">Yuzhang Shang<sup>1</sup></a>
               </span>
             </div>
 
@@ -164,10 +164,9 @@
 
 
             <div class="is-size-4 publication-authors">
-              <span class="author-block"><b style="color:#008AD7; font-weight:normal">1. </b>Nanyang Technological University</span>
+              <span class="author-block"><b style="color:#008AD7; font-weight:normal">1. </b>University of Central Florida</span>
               <span class="author-block"><b style="color:#008AD7; font-weight:normal">2. </b>Carnegie Mellon University</span>
               <span class="author-block"><b style="color:#008AD7; font-weight:normal">3. </b>Hong Kong University of Sciences and Technology</span>
-              <span class="author-block"><b style="color:#008AD7; font-weight:normal">4. </b>University of Central Florida</span>
             </div>
             <div class="column has-text-centered">
               <div class="publication-links">
@@ -254,23 +253,40 @@
   <section class="section">
     <div class="container is-max-desktop">
       <div class="columns is-centered has-text-centered">
-        <h2 class="title is-3">Method</h2>
+        <h2 class="title is-3"><img id="painting_icon" width="5%" src="images/lightbulb.png"> Method</h2>
       </div>
+      
       <h3>1. Learning to Parallel Decoding</h3>
-        <img id="teaser" width="100%" src="images/overview.png">
-        <div class="columns">
-          <div class="column is-one-third method-text">
-            <p>This strategy compares the predicted tokens with the reference answer and only remasks the tokens that do not match in these comparisons.</p>
-          </div>
-          <div class="column is-two-third method-text">
-            <p>Use a trained \(Filter f_\theta\) that simulate the Extremely Greedy Parallel strategy after each decoding step to select tokens and decide whether to remask them.</p>
-          </div>
+      <img id="teaser" width="100%" src="images/overview.png">
+      <div class="columns">
+        <div class="column is-one-third method-text">
+          <p>This strategy compares the predicted tokens with the reference answer and only remasks the tokens that do not match in these comparisons.</p>
         </div>
+        <div class="column is-two-third method-text">
+          <p>Use a trained \(Filter f_\theta\) that simulate the Extremely Greedy Parallel strategy after each decoding step to select tokens and decide whether to remask them.</p>
+        </div>
+      </div>
+      
+      <h3>2. End-of-Text Prediction</h3>
+      <div class="columns">
+      <img id="teaser" class="column is-one-third" src="images/eot.png">
+      <div class="column is-two-third method-text">
+        <p>
+          Upon detection of an \([EoT]\) token, all subsequent tokens are assigned with \([EoT]\) in parallel. 
+          Since the \([EoT]\) tokens have no effect on other tokens except the first \([EoT]\) token, we throw away those useless \([EoT]\) tokens in the next diffusion step.
+        </p>
+      </div>
+      </div>
     </div>
+  </section>
+
+  <section class="section">
     <!-- visualization -->
     <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <h2 class="title is-3">Demo</h2>
+      </div>
       <div class="decoder-visualization">
-        <h3 class="title is-5">Question</h3>
         <p id="question" class="is-size-5">Loading question...</p>
   
         <div class="controls">
@@ -286,289 +302,45 @@
         <div id="tables-container"></div>
       </div>
     </div>
-
-    <!-- Results. -->
-    <div class="columns is-centered has-text-centered">
-      <div class="column is-six-fifths">
-        <h2 class="title is-3"><img id="painting_icon" width="3%" src="images/alarm.png"> Motivation: Visual Tokens are
-          spatially redundant </h2>
-      </div>
-    </div>
-    <!--/ Results. -->
-    <div class="container is-max-desktop">
-      <div class="columns is-centered">
-        <div class="column is-full-width">
-          <div class="content has-text-justified">
-
-
-            <p>
-              Current large multimodal models utlize all visual tokens to represent an image. In LLaVA-1.5, all spatial
-              (24&times;24=576) tokens are fed into the LLM, which leads to redundancy.
-            </p>
-
-            <p>
-              We propose a <b>plug-and-play</b> module to reduce the number of visual tokens, which can be conducted via
-              either training-free or finetuning manner.
-            </p>
-
-
-          </div>
-          <centering>
-            <div style="text-align: center;">
-              <img id="teaser" width="50%" src="images/architecture.png">
-            </div>
-          </centering>
-        </div>
-      </div>
-      <div class="columns is-centered">
-        <div class="column is-full-width">
-          <div class="content has-text-justified">
-            <p>
-              Interestly, we oberserve that the activations between the class tokens and spatial tokens in CLIP are
-              <b>very sparse</b>, <b>which can be leveraged to prune the visual tokens</b>.
-            </p>
-          </div>
-          <centering>
-            <div style="text-align: center;">
-              <img id="teaser" width="100%" src="images/activation.png">
-            </div>
-          </centering>
-        </div>
-      </div>
-    </div>
-    <section class="section">
-      <!-- Results. -->
-      <div class="columns is-centered has-text-centered">
-        <div class="column is-six-fifths">
-          <h2 class="title is-3"><img id="painting_icon" width="3%" src="images/lightbulb.png">The conceptual idea of
-            LLaVA-PruMerge</h2>
-        </div>
-      </div>
-      <!--/ Results. -->
-      <div class="container is-max-desktop">
-        <div class="columns is-centered">
-          <div class="column is-full-width">
-            <div class="content has-text-justified">
-              <p>
-                Our approach has 3 steps:
-              <ul type="1">
-                <li> <span style="font-size: 95%;"> Sample important tokens according to the similarities between the
-                    class tokens and spatial visual tokens; </span></li>
-                <li> <span style="font-size: 95%;"> Cluster the visual tokens via k-nearest neighbor; </span></li>
-                <li> <span style="font-size: 95%;"> Adjust the sampled visual tokens via weighted averaging for each
-                    cluster. Here m denotes the visual token compression ratio. </span></li>
-              </ul>
-              </p>
-            </div>
-            <centering>
-              <div style="text-align: center;">
-                <img id="teaser" width="90%" src="images/detailed_steps.png">
-              </div>
-            </centering>
-          </div>
-        </div>
-
-        <div class="container is-max-desktop">
-          <div class="columns is-centered">
-            <div class="column is-full-width">
-              <div class="content has-text-justified">
-                <p>
-                  Our sampled tokens can better reflect the key information in the image.
-                </p>
-              </div>
-              <centering>
-                <div style="text-align: center;">
-                  <img id="teaser" width="100%" src="images/visualization.png">
-                </div>
-              </centering>
-            </div>
-          </div>
-
-          <div class="container is-max-desktop">
-            <div class="columns is-centered">
-              <div class="column is-full-width">
-                <div class="content has-text-justified">
-                  <p>
-                    We can further ehanace the performance by supplementing with spatial tokens.
-                  </p>
-                </div>
-                <centering>
-                  <div style="text-align: center;">
-                    <img id="teaser" width="60%" src="images/expalin_PruMerge+.png">
-                  </div>
-                </centering>
-              </div>
-            </div>
-    </section>
-
-    <section class="section">
-      <!-- Results. -->
-      <div class="columns is-centered has-text-centered">
-        <div class="column is-six-fifths">
-          <h2 class="title is-3"><img id="painting_icon" width="3%"
-              src="https://cdn-icons-png.flaticon.com/512/5379/5379860.png">Computation Cost Analysis</h2>
-        </div>
-      </div>
-      <!-- </div> -->
-      <!--/ Results. -->
-      <div class="container is-max-desktop">
-
-        <div class="columns is-centered">
-          <div class="column is-full-width">
-            <div class="content has-text-justified">
-              <p>
-                <b>Our approach can significantly reduce the computation cost.</b> We evaluate on TESLA V100 GPU, and
-                time estimated by the roofline model represents the theoretical performance that the hardware can
-                achieve.
-              </p>
-            </div>
-            <centering>
-              <div style="text-align: center;">
-                <img id="teaser" width="90%" src="images/efficency.png">
-              </div>
-            </centering>
-          </div>
-        </div>
-    </section>
-
-    <section class="section">
-      <!-- Results. -->
-      <div class="columns is-centered has-text-centered">
-        <div class="column is-six-fifths">
-          <h2 class="title is-3"><img id="painting_icon" width="3%"
-              src="https://cdn-icons-png.flaticon.com/512/3515/3515174.png"> Performance</h2>
-        </div>
-      </div>
-
-      <!-- </div> -->
-      <!--/ Results. -->
-      <div class="container is-max-desktop">
-
-
-        <!-- Grounedtext2img. -->
-        <div class="columns is-centered">
-          <div class="column is-full-width">
-            <h2 class="title is-4"><img id="painting_icon" width="4%"
-                src="https://cdn-icons-png.flaticon.com/512/1698/1698535.png"> <span style="font-size: 100%;">We achieve
-                comparable performance on LLaVA-1.5 benchmarks</span></h2>
-            <div class="columns is-centered">
-              <div class="column is-full-width">
-                <div class="content has-text-justified">
-                </div>
-              </div>
-            </div>
-            <div>
-              <a href="https://plotly.com/~lichunyuan24/5/?share_key=d78QObaCAYCIy8PJpe3gd1" target="_blank"
-                title="llava_gpt4_pie" style="display: block; text-align: center;"> <img id="painting_icon" width="90%"
-                  src="images/PruMerge+_results.png"> </a>
-
-            </div>
-
-            <!-- <p style="font-family:Times New Roman"><b>ViP-LLaVa achieves state-of-the-art performance on those benchmarks.</b>                -->
-          </div>
-        </div>
-
-
-
-
-
-        <!-- Grounedtext2img. -->
-        <div class="columns is-centered">
-          <div class="column is-full-width">
-            <h2 class="title is-4"> <img id="painting_icon" width="3%"
-                src="https://scienceqa.github.io/img/logo.png"><span style="font-size: 100%;"> &nbsp; Our sampled tokens
-                are better than naive visual token sampling</span> </h2>
-
-
-
-            <div>
-              <div class="columns is-centered">
-                <div class="column is-full-width">
-                  <div class="content has-text-justified">
-                    <p>
-                      We compare sequential sampling and saptical sampling.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <a href="https://plotly.com/~lichunyuan24/1/?share_key=v4opE3TJpxqQ08RYsDD4iv" target="_blank"
-                title="Plot 1" style="display: block; text-align: center;"><img id="painting_icon" width="70%"
-                  src="images/sampling-visualization.png"></a>
-              <script data-plotly="lichunyuan24:1" sharekey-plotly="v4opE3TJpxqQ08RYsDD4iv"
-                src="https://plotly.com/embed.js" async></script>
-
-              <!-- <p style="font-family:Times New Roman"><b>LLaVA alones achieve 90.92%. We use the text-only GPT-4 as the judge, to predict the final answer based on its own previous answers and the LLaVA answers. This "GPT-4 as judge" scheme yields a new SOTA 92.53%.</b> -->
-
-            </div>
-
-
-
-            <div>
-              <div class="columns is-centered">
-                <div class="column is-full-width">
-                  <div class="content has-text-justified">
-                    <br>
-                    <p>
-                      We receive better performance, especailly on tasks that requries detailed information, such as
-                      OCR.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <a href="https://plotly.com/~lichunyuan24/1/?share_key=v4opE3TJpxqQ08RYsDD4iv" target="_blank"
-                title="Plot 1" style="display: block; text-align: center;"><img id="painting_icon" width="80%"
-                  src="images/compare-sampling.png"></a>
-              <script data-plotly="lichunyuan24:1" sharekey-plotly="v4opE3TJpxqQ08RYsDD4iv"
-                src="https://plotly.com/embed.js" async></script>
-
-              <!-- <p style="font-family:Times New Roman"><b>LLaVA alones achieve 90.92%. We use the text-only GPT-4 as the judge, to predict the final answer based on its own previous answers and the LLaVA answers. This "GPT-4 as judge" scheme yields a new SOTA 92.53%.</b> -->
-
-            </div>
-
-
-
-
-
-
-          </div>
-
-
-
-
-
-
-
-
-
-
-    </section>
-
   </section>
 
-  <section class="section" id="parallel-decoding-visualization">
+  <section class="section">
+    <!-- Performance -->
     <div class="container is-max-desktop">
       <div class="columns is-centered has-text-centered">
-        <div class="column is-six-fifths">
-          <h2 class="title is-3">Parallel Decoding Animator</h2>
-        </div>
+        <h2 class="title is-3"><img id="painting_icon" width="5%" src="https://cdn-icons-png.flaticon.com/512/3515/3515174.png"> Performance</h2>
       </div>
-
+      <p>
+        Benchmark results on the LLaDA-8B-Instruct suite. 
+        Each method was evaluated using two generation lengths (<b>256</b> and <b>1024</b>) across four datasets. 
+        Performance is measured using three metrics: <b>TPS (tokens/sec)</b>, <b>speedup</b>, and <b>accuracy score</b>. 
+        The highest throughput and speedup values for each configuration are highlighted in bold.
+      </p>
+      <img id="teaser" src="images/performance.png">
+    </div>
+  </section>
+  
+  <section class="section">
+    <!-- Compatibility -->
+    <div class="container is-max-desktop">
+      <div class="columns is-centered has-text-centered">
+        <h2 class="title is-3"><img id="painting_icon" width="5%" src="https://cdn-icons-png.flaticon.com/512/5379/5379860.png"> Compatibility with Key-Value Cache</h2>
+      </div>
+      <p>
+        We further evaluate the compatibility of our approach with established Key-Value (KV) Cache techniques by integrating both <a href="https://nvlabs.github.io/Fast-dLLM/paper/fast_dllm.pdf">Dual Cache and Prefix Cache</a> strategies. 
+        Experiments are conducted on GSM8K with a generation length of 1024 tokens. 
+        As summarized in the following table, the baseline model (Learn2PD & EoTP) achieves a throughput of 12.26 TPS, a speed-up of 22.58×, and an accuracy score of 79.83. 
+        When augmented with the Dual Cache, the system attains substantially higher efficiency, reaching 31.23 TPS and a 57.51× speedup, albeit with a slight decrease in accuracy (74.00). 
+        Similarly, incorporating the Prefix Cache also brings noticeable improvements, yielding 14.79 TPS and a 27.23× acceleration while maintaining a competitive score of 77.71. 
+        These results confirm that our method is orthogonal to and fully compatible with standard KV caching mechanisms, demonstrating its ability to leverage such strategies to enhance inference efficiency.
+      </p>
       <div class="columns is-centered">
-        <div class="column is-full-width">
-          <div class="content has-text-justified">
-            <p>
-              Step through the diffusion decoding process to see how Learn2PD selectively finalizes tokens over time.
-              Use the playback controls to animate the progression, adjust the speed, or compare individual steps.
-            </p>
-          </div>
-        </div>
+        <img id="teaser" width="50%" src="images/kvcache.png">
       </div>
     </div>
   </section>
 
-  <section class="section" id="BibTeX">
+  <!-- <section class="section" id="BibTeX">
     <div class="container is-max-desktop content">
       <h2 class="title">BibTeX</h2>
       <pre><code>
@@ -580,7 +352,7 @@
         }
       </code></pre>
     </div>
-  </section>
+  </section> -->
 
   <section class="section" id="Acknowledgement">
     <div class="container is-max-desktop content">
@@ -588,22 +360,21 @@
       <p>
         This website is adapted from <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>, licensed under
         a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
-          Commons Attribution-ShareAlike 4.0 International License</a>. We thank the LLaMA team for giving us access to
-        their models, and open-source projects, including Alpaca and Vicuna.
+          Commons Attribution-ShareAlike 4.0 International License</a>. We thank the LLaDA team for giving us access to
+        their models, and open-source projects.
       </p>
 
       <p>
         <b>Usage and License Notices</b>: The data, code and checkpoint is intended and licensed for research use only.
-        They are also restricted to uses that follow the license agreement of CLIP, LLaMA, Vicuna and GPT-4. The dataset
+        They are also restricted to uses that follow the license agreement of LLaDA, Fast-dLLM. The dataset
         is CC BY NC 4.0 (allowing only non-commercial use) and models trained using the dataset should not be used
         outside of research purposes.
       </p>
 
       <p>
         Related Links:
-        <a href='https://arxiv.org/abs/2103.00020'>[CLIP]</a>
-        <a href='https://llava-vl.github.io/'>[LLaVA]</a>
-        <a href='https://instruction-tuning-with-gpt-4.github.io/'>[Instruction Tuning with GPT-4]</a>
+        <a href='https://arxiv.org/pdf/2502.09992'>[LLaDA]</a>
+        <a href='https://nvlabs.github.io/Fast-dLLM/'>[Fast-dLLM]</a>
       </p>
     </div>
   </section>
